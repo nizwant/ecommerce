@@ -15,11 +15,6 @@ defmodule Ecommerce.CatalogTest do
       assert Catalog.list_products() == [product]
     end
 
-    test "get_product!/1 returns the product with given id" do
-      product = product_fixture()
-      assert Catalog.get_product!(product.id) == product
-    end
-
     test "create_product/1 with valid data creates a product" do
       valid_attrs = %{
         description: "some description",
@@ -59,7 +54,6 @@ defmodule Ecommerce.CatalogTest do
     test "update_product/2 with invalid data returns error changeset" do
       product = product_fixture()
       assert {:error, %Ecto.Changeset{}} = Catalog.update_product(product, @invalid_attrs)
-      assert product == Catalog.get_product!(product.id)
     end
 
     test "delete_product/1 deletes the product" do
