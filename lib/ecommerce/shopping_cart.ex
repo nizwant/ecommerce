@@ -5,8 +5,8 @@ defmodule Ecommerce.ShoppingCart do
 
   import Ecto.Query, warn: false
   alias Ecommerce.Repo
-
-  alias Ecommerce.ShoppingCart.Cart
+  alias Ecommerce.Catalog
+  alias Ecommerce.ShoppingCart.{Cart, CartItem}
 
   @doc """
   Returns the list of carts.
@@ -49,11 +49,30 @@ defmodule Ecommerce.ShoppingCart do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_cart(attrs \\ %{}) do
-    %Cart{}
-    |> Cart.changeset(attrs)
-    |> Repo.insert()
+
+  def get_cart_by_user_uuid(user_uuid) do
+    Repo.one(
+      from(c in Cart,
+        where: c.user_uuid == ^user_uuid,
+        left_join: i in assoc(c, :items),
+        left_join: p in assoc(i, :product),
+        order_by: [asc: i.inserted_at],
+        preload: [items: {i, product: p}]
+      )
+    )
   end
+
+  def create_cart(user_uuid) do
+    %Cart{user_uuid: user_uuid}
+    |> Cart.changeset(%{})
+    |> Repo.insert()
+    |> case do
+      {:ok, cart} -> {:ok, reload_cart(cart)}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  defp reload_cart(%Cart{} = cart), do: get_cart_by_user_uuid(cart.user_uuid)
 
   @doc """
   Updates a cart.
@@ -196,5 +215,30 @@ defmodule Ecommerce.ShoppingCart do
   """
   def change_cart_item(%CartItem{} = cart_item, attrs \\ %{}) do
     CartItem.changeset(cart_item, attrs)
+  end
+
+  def add_item_to_cart(%Cart{} = cart, product_id) do
+    product = Catalog.get_product!(product_id)
+
+    %CartItem{quantity: 1, price_when_carted: product.price}
+    |> CartItem.changeset(%{})
+    |> Ecto.Changeset.put_assoc(:cart, cart)
+    |> Ecto.Changeset.put_assoc(:product, product)
+    |> Repo.insert(
+      on_conflict: [inc: [quantity: 1]],
+      conflict_target: [:cart_id, :product_id]
+    )
+  end
+
+  def remove_item_from_cart(%Cart{} = cart, product_id) do
+    {1, _} =
+      Repo.delete_all(
+        from(i in CartItem,
+          where: i.cart_id == ^cart.id,
+          where: i.product_id == ^product_id
+        )
+      )
+
+    {:ok, reload_cart(cart)}
   end
 end
