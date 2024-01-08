@@ -5,8 +5,8 @@ defmodule Ecommerce.ShoppingCart.CartItem do
   schema "cart_items" do
     field :price_when_carted, :decimal
     field :quantity, :integer
-    field :cart_id, :id
-    field :product_id, :id
+    belongs_to :cart, Ecommerce.ShoppingCart.Cart
+    belongs_to :product, Ecommerce.Catalog.Product
 
     timestamps(type: :utc_datetime)
   end
@@ -16,5 +16,6 @@ defmodule Ecommerce.ShoppingCart.CartItem do
     cart_item
     |> cast(attrs, [:price_when_carted, :quantity])
     |> validate_required([:price_when_carted, :quantity])
+    |> validate_number(:quantity, greater_that_or_equal_to: 0, less_than: 100)
   end
 end
