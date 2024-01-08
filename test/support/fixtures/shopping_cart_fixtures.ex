@@ -12,20 +12,6 @@ defmodule Ecommerce.ShoppingCartFixtures do
   end
 
   @doc """
-  Generate a cart.
-  """
-  def cart_fixture(attrs \\ %{}) do
-    {:ok, cart} =
-      attrs
-      |> Enum.into(%{
-        user_uuid: unique_cart_user_uuid()
-      })
-      |> Ecommerce.ShoppingCart.create_cart()
-
-    cart
-  end
-
-  @doc """
   Generate a cart_item.
   """
   def cart_item_fixture(attrs \\ %{}) do
