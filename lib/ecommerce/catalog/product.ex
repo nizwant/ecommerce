@@ -8,6 +8,7 @@ defmodule Ecommerce.Catalog.Product do
     field(:title, :string)
     field(:price, :decimal)
     field(:views, :integer)
+    field(:art_image, :string)
 
     many_to_many(:categories, Category, join_through: "product_categories", on_replace: :delete)
 
@@ -17,7 +18,7 @@ defmodule Ecommerce.Catalog.Product do
   @doc false
   def changeset(product, attrs) do
     product
-    |> cast(attrs, [:title, :description, :price, :views])
-    |> validate_required([:title, :description, :price, :views])
+    |> cast(attrs, [:title, :description, :price, :art_image])
+    |> validate_required([:title, :description, :price, :art_image])
   end
 end

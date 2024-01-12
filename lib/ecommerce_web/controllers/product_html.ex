@@ -20,4 +20,6 @@ defmodule EcommerceWeb.ProductHTML do
     for cat <- Ecommerce.Catalog.list_categories(),
         do: [key: cat.title, value: cat.id, selected: cat.id in existing_ids]
   end
+
+  def currency_to_str(%Decimal{} = val), do: "#{Decimal.round(val, 2)} zł"
 end
